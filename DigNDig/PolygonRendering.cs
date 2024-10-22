@@ -116,8 +116,9 @@ namespace Polygons
         }
         public static Matrix4x4 GetModelMatrix()
         {
+            float degrees = 45.0f;
             Matrix4x4 model = Matrix4x4.Identity;
-            model *= Matrix4x4.CreateRotationX(-55.0f);
+            model *= Matrix4x4.CreateRotationX(degrees*((float)Math.PI/180.0f));
             return model;
         }
 

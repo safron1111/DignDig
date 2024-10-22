@@ -130,7 +130,7 @@ namespace MainProgram
             for (int i = 0; i < input.Keyboards.Count; i++)
                 input.Keyboards[i].KeyDown += KeyDown;
 
-            Polygons.PolygonsClass.DrawCube(verticestex,indices,"textures/epicface.png");
+            Polygons.PolygonsClass.DrawCube(verticestex,indices,"resources/textures/epicface.png");
 
             _gl.Viewport(0,0,(uint)CameraClass.width,(uint)CameraClass.height);
         }

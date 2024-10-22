@@ -30,7 +30,7 @@ namespace Camera
         public static Matrix4x4 Matrix_view()
         {
             Matrix4x4 view = Matrix4x4.Identity;
-            Matrix4x4 viewTranslation = Matrix4x4.CreateTranslation(new Vector3(0.0f,0.0f,-3.0f));
+            Matrix4x4 viewTranslation = Matrix4x4.CreateTranslation(new Vector3(0.0f,-0.5f,-3.0f));
             view = Matrix4x4.Multiply(view,viewTranslation);
 
             Console.WriteLine(view);
@@ -40,7 +40,8 @@ namespace Camera
 
         public static Matrix4x4 Matrix_proj(float aspectRatio, float FOVdeg, float nearP, float farP)
         {
-            Matrix4x4 proj = Matrix4x4.CreatePerspectiveFieldOfView(FOVdeg*((float)Math.PI/180.0f),aspectRatio,nearP,farP);
+            Matrix4x4 proj = Matrix4x4.Identity;
+            proj = Matrix4x4.CreatePerspectiveFieldOfView(FOVdeg*((float)Math.PI/180.0f),aspectRatio,nearP,farP);
 
             Console.WriteLine(FOVdeg*((float)Math.PI/180.0f));
 
