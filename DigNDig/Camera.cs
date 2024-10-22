@@ -46,12 +46,13 @@ namespace Camera
 
             return proj;
         }
+    }
 
-        public void Camera(int width, int height, Vector3 position)
-        {
-            width = width;
-            height = height;
-            position = position;
-        }
+    public class Camera
+    {
+        Vector3 startPos = CameraClass._camPos;
+        Vector3 pos;
+        int width = CameraClass.width;
+        int height = CameraClass.width;
     }
 }

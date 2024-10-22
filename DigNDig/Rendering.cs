@@ -208,8 +208,8 @@ namespace MainProgram
             fixed (uint* buf = indices)
             _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
-            uint vertexShader = shadeVertex();
-            uint fragmentShader = shadeFragment();
+            uint vertexShader = FlatShader.shadeVertex();
+            uint fragmentShader = FlatShader.shadeFragment();
 
             _program = _gl.CreateProgram();
 
@@ -253,8 +253,8 @@ namespace MainProgram
             fixed (uint* buf = indicesT)
             _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indicesT.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
-            uint vertexShader = shadeVertex();
-            uint fragmentShader = shadeFragment();
+            uint vertexShader = FlatShader.shadeVertex();
+            uint fragmentShader = FlatShader.shadeFragment();
 
             _programT = _gl.CreateProgram();
 
@@ -298,8 +298,8 @@ namespace MainProgram
             fixed (uint* buf = indicesT)
             _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indicesT.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
-            uint vertexShader = shadeVertex();
-            uint fragmentShader = shadeFragment();
+            uint vertexShader = FlatShader.shadeVertex();
+            uint fragmentShader = FlatShader.shadeFragment();
 
             _programT = _gl.CreateProgram();
 
@@ -342,54 +342,6 @@ namespace MainProgram
             _gl.BindVertexArray(_vao);
             _gl.UseProgram(_program);
             _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
-        }
-
-        public static unsafe uint shadeVertex()
-        {
-            const string vertexCode = @"
-            #version 330 core
-
-            layout (location = 0) in vec3 aPosition;
-
-            void main()
-            {
-                gl_Position = vec4(aPosition, 1.0);
-            }";
-
-            uint vertexShader = _gl.CreateShader(ShaderType.VertexShader);
-            _gl.ShaderSource(vertexShader, vertexCode);
-
-            _gl.CompileShader(vertexShader);
-
-            _gl.GetShader(vertexShader, ShaderParameterName.CompileStatus, out int vStatus);
-            if (vStatus != (int) GLEnum.True)
-                throw new Exception("VERTEX FAILED" + _gl.GetShaderInfoLog(vertexShader));
-
-            return vertexShader;
-        }
-
-        public static unsafe uint shadeFragment()
-        {
-            const string fragmentCode = @"
-            #version 330 core
-
-            out vec4 out_color;
-            
-            void main()
-            {
-                out_color = vec4(0.2, 0.5, 0.2, 1.0);
-            }";
-
-            uint fragmentShader = _gl.CreateShader(ShaderType.FragmentShader);
-            _gl.ShaderSource(fragmentShader, fragmentCode);
-
-            _gl.CompileShader(fragmentShader);
-
-            _gl.GetShader(fragmentShader, ShaderParameterName.CompileStatus, out int fStatus);
-            if (fStatus != (int) GLEnum.True)
-                throw new Exception("FRAGMENT FAILED" + _gl.GetShaderInfoLog(fragmentShader));
-
-            return fragmentShader;
         }
         private static void OnWindowChangedSize(Vector2D<int> size)
         {
