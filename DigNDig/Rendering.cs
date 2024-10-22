@@ -11,6 +11,8 @@ using System.Reflection.Metadata.Ecma335;
 using System.Drawing;
 using System.Numerics;
 using Camera;
+using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics.Metrics;
 
 namespace MainProgram
 {
@@ -24,6 +26,8 @@ namespace MainProgram
         private static uint _vao;
         private static uint _vbo;
         private static uint _ebo;
+
+        public static bool isWindowRunning = false;
 
         private static uint _vaoT;
         private static uint _vboT;
@@ -119,8 +123,20 @@ namespace MainProgram
             _mainWindow.Resize += OnWindowChangedSize;
 
             _mainWindow.Run();
+
+            isWindowRunning = true;
         }
 
+        public static float GetAspectRatio()
+        {
+            if (isWindowRunning == true)
+            {
+                float aspectRatio = _mainWindow.Size.X / _mainWindow.Size.Y;
+                return aspectRatio;
+            } else {
+                return 1.7066f;
+            }
+        }
         private static unsafe void OnWindowLoad()
         {
             _gl = GL.GetApi(_mainWindow);
@@ -130,11 +146,10 @@ namespace MainProgram
             for (int i = 0; i < input.Keyboards.Count; i++)
                 input.Keyboards[i].KeyDown += KeyDown;
 
-            Polygons.PolygonsClass.DrawCube(verticestex,indices,"resources/textures/epicface.png");
-
             _gl.Viewport(0,0,(uint)CameraClass.width,(uint)CameraClass.height);
         }
 
+        private static int counter;
         private static unsafe void OnWindowRenderDelta(double delta)
         {
             RenderHere(delta);
@@ -145,6 +160,8 @@ namespace MainProgram
         {
             _gl.ClearColor(0.2f,0.25f,0.6f,1.0f);
             _gl.Clear(ClearBufferMask.ColorBufferBit);
+
+            Polygons.PolygonsClass.DrawCube(verticestex,indices,"resources/textures/epicface.png");
 
             Polygons.PolygonsClass.RenderCube();
         }
@@ -187,161 +204,6 @@ namespace MainProgram
                 dir = Vector3.Normalize(_cameraTarget - _cameraPosition);
                 _cameraPosition += CameraClass._camUp1 * CameraClass.speed;
             }
-
-            Console.WriteLine(_cameraPosition);
-        }
-
-        private static unsafe void DrawRectangle(float[] vertices, uint[] indices)
-        {
-            _vao = _gl.GenVertexArray();
-            _gl.BindVertexArray(_vao);
-
-            _vbo = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
-
-            fixed (float* buf = vertices)
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertices.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
-
-            _ebo = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
-
-            fixed (uint* buf = indices)
-            _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
-
-            uint vertexShader = FlatShader.shadeVertex();
-            uint fragmentShader = FlatShader.shadeFragment();
-
-            _program = _gl.CreateProgram();
-
-            _gl.AttachShader(_program, vertexShader);
-            _gl.AttachShader(_program, fragmentShader);
-
-            _gl.LinkProgram(_program);
-
-            _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
-            if (lStatus != (int) GLEnum.True)
-                throw new Exception("LINK FAILED" + _gl.GetProgramInfoLog(_program));
-
-            _gl.DetachShader(_program, vertexShader);
-            _gl.DetachShader(_program, fragmentShader);
-            _gl.DeleteShader(vertexShader);
-            _gl.DeleteShader(fragmentShader);
-
-            const uint positionLoc = 0;
-            _gl.EnableVertexAttribArray(positionLoc);
-            _gl.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*) 0);
-
-            _gl.BindVertexArray(0);
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        }
-
-        private static unsafe void DrawTriangle(float[] verticesT, uint[] indicesT)
-        {
-            _vaoT = _gl.GenVertexArray();
-            _gl.BindVertexArray(_vaoT);
-
-            _vboT = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vboT);
-
-            fixed (float* buf = verticesT)
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (verticesT.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
-
-            _eboT = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _eboT);
-
-            fixed (uint* buf = indicesT)
-            _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indicesT.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
-
-            uint vertexShader = FlatShader.shadeVertex();
-            uint fragmentShader = FlatShader.shadeFragment();
-
-            _programT = _gl.CreateProgram();
-
-            _gl.AttachShader(_programT, vertexShader);
-            _gl.AttachShader(_programT, fragmentShader);
-
-            _gl.LinkProgram(_programT);
-
-            _gl.GetProgram(_programT, ProgramPropertyARB.LinkStatus, out int lStatus);
-            if (lStatus != (int) GLEnum.True)
-                throw new Exception("LINK FAILED" + _gl.GetProgramInfoLog(_programT));
-
-            _gl.DetachShader(_programT, vertexShader);
-            _gl.DetachShader(_programT, fragmentShader);
-            _gl.DeleteShader(vertexShader);
-            _gl.DeleteShader(fragmentShader);
-
-            const uint positionLoc = 0;
-            _gl.EnableVertexAttribArray(positionLoc);
-            _gl.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*) 0);
-
-            _gl.BindVertexArray(0);
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        }
-
-        private static unsafe void DrawTriangleLive(float[] verticesT, uint[] indicesT)
-        {
-            _vaoT = _gl.GenVertexArray();
-            _gl.BindVertexArray(_vaoT);
-
-            _vboT = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vboT);
-
-            fixed (float* buf = verticesT)
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (verticesT.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
-
-            _eboT = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _eboT);
-
-            fixed (uint* buf = indicesT)
-            _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indicesT.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
-
-            uint vertexShader = FlatShader.shadeVertex();
-            uint fragmentShader = FlatShader.shadeFragment();
-
-            _programT = _gl.CreateProgram();
-
-            _gl.AttachShader(_programT, vertexShader);
-            _gl.AttachShader(_programT, fragmentShader);
-
-            _gl.LinkProgram(_programT);
-
-            _gl.GetProgram(_programT, ProgramPropertyARB.LinkStatus, out int lStatus);
-            if (lStatus != (int) GLEnum.True)
-                throw new Exception("LINK FAILED" + _gl.GetProgramInfoLog(_programT));
-
-            _gl.DetachShader(_programT, vertexShader);
-            _gl.DetachShader(_programT, fragmentShader);
-            _gl.DeleteShader(vertexShader);
-            _gl.DeleteShader(fragmentShader);
-
-            const uint positionLoc = 0;
-            _gl.EnableVertexAttribArray(positionLoc);
-            _gl.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*) 0);
-
-            _gl.BindVertexArray(0);
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-
-            _gl.BindVertexArray(_vaoT);
-            _gl.UseProgram(_programT);
-            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
-        }
-
-        public static unsafe void RenderTriangle()
-        {
-            _gl.BindVertexArray(_vaoT);
-            _gl.UseProgram(_programT);
-            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
-        }
-
-        public static unsafe void RenderRectangle()
-        {
-            _gl.BindVertexArray(_vao);
-            _gl.UseProgram(_program);
-            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
         }
         private static void OnWindowChangedSize(Vector2D<int> size)
         {

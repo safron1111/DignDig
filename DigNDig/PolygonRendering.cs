@@ -5,7 +5,6 @@ using System;
 using System.Security.Cryptography.X509Certificates;
 using Silk.NET.GLFW;
 using Camera;
-using SecondaryRendering;
 using StbImageSharp;
 
 namespace Polygons
@@ -14,14 +13,14 @@ namespace Polygons
     {
         public static uint _program;
         private static GL _gl = MainProgram.MainProgram._gl;
+        private static Glfw _glfw = Glfw.GetApi();
         private static uint _texture;
         private static uint _vaoTex3D;
         private static uint _vboTex3D;
         private static uint _eboTex3D;
         public unsafe static void DrawCube(float[] vertices, uint[] indices, string textureName)
         {
-            Matrix4x4 __model = GetModelMatrix();
-
+            _model = GetModelMatrix();
             _vaoTex3D = _gl.GenVertexArray();
             _gl.BindVertexArray(_vaoTex3D);
 
@@ -35,7 +34,7 @@ namespace Polygons
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _eboTex3D);
 
             fixed (uint* buf = indices)
-            _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+                _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
             uint vertexShader = PolygonShader.shadeVertex3DTex();
             uint fragmentShader = PolygonShader.shadeFragment3DTex();
@@ -47,6 +46,8 @@ namespace Polygons
 
             _gl.LinkProgram(_program);
 
+            _gl.UseProgram(_program);
+            
             int modelLoc = _gl.GetUniformLocation(_program,"_model");
 
             fixed(float* ptr1 = &_model.M11)
@@ -61,8 +62,6 @@ namespace Polygons
 
             fixed(float* ptr3 = &_proj.M11)
                 _gl.UniformMatrix4(projLoc,1,false,ptr3);
-
-            Console.WriteLine($"modelLoc: {modelLoc}, viewLoc: {viewLoc}, projLoc: {projLoc}");
 
             _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
             if (lStatus != (int) GLEnum.True)
@@ -116,13 +115,14 @@ namespace Polygons
         }
         public static Matrix4x4 GetModelMatrix()
         {
-            float degrees = 45.0f;
+            float degrees = -55.0f;
+            float radians = degrees * (float)Math.PI/180.0f;
             Matrix4x4 model = Matrix4x4.Identity;
-            model *= Matrix4x4.CreateRotationX(degrees*((float)Math.PI/180.0f));
+            model *= Matrix4x4.CreateRotationX((float)_glfw.GetTime() * radians);
             return model;
         }
 
-        public static Matrix4x4 _model = GetModelMatrix();
+        public static Matrix4x4 _model;
         public static Matrix4x4 _view = CameraClass.Matrix_view();
         public static Matrix4x4 _proj = CameraClass.Matrix_proj(CameraClass.aspectRatio,CameraClass.FOVdeg,CameraClass.nearP,CameraClass.farP);
     }

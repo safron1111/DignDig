@@ -49,8 +49,8 @@ public class PolygonShader
         
         void main()
         {
-            out_color = vec4(frag_tex3dCoords.x, frag_tex3dCoords.y, 0.0, 1.0);
-        //   -out_color = texture(uTexture, frag_tex3dCoords);
+        //    -out_color = vec4(frag_tex3dCoords.x, frag_tex3dCoords.y, 0.0, 1.0);
+            out_color = texture(uTexture, frag_tex3dCoords);
         }";
 
         int location = _gl.GetUniformLocation(_program, "uTexture");
