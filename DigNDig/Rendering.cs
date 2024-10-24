@@ -13,6 +13,7 @@ using System.Numerics;
 using Camera;
 using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics.Metrics;
+using Polygons;
 
 namespace MainProgram
 {
@@ -23,6 +24,7 @@ namespace MainProgram
         private static uint _programT;
 
         public static GL _gl;
+        private static Glfw _glfw = Glfw.GetApi();
         private static uint _vao;
         private static uint _vbo;
         private static uint _ebo;
@@ -112,7 +114,7 @@ namespace MainProgram
             options.Size = new Vector2D<int>(1024, 600);
             options.Title = "Dig N' Dig";
             options.VSync = false;
-            options.FramesPerSecond = 18;
+            options.FramesPerSecond = 20;
 
             _mainWindow = Window.Create(options);
 
@@ -146,6 +148,8 @@ namespace MainProgram
             for (int i = 0; i < input.Keyboards.Count; i++)
                 input.Keyboards[i].KeyDown += KeyDown;
 
+            _gl.Enable(GLEnum.DepthTest);
+
             _gl.Viewport(0,0,(uint)CameraClass.width,(uint)CameraClass.height);
         }
 
@@ -159,18 +163,28 @@ namespace MainProgram
         private static unsafe void RenderHere(double delta)
         {
             _gl.ClearColor(0.2f,0.25f,0.6f,1.0f);
-            _gl.Clear(ClearBufferMask.ColorBufferBit);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Polygons.PolygonsClass.DrawCube(verticestex,indices,"resources/textures/epicface.png");
+            Polygons.PolygonsClass.DrawCube(PolygonsClass.GetCubeVertexMatrix(),PolygonsClass.GetCubeIndicesMatrix(),"resources/textures/mao.jpg",new Vector3(-1.25f,0.0f,0.0f),-1.5f);
+
+            Polygons.PolygonsClass.RenderCube();
+
+            Polygons.PolygonsClass.DrawCube(PolygonsClass.GetCubeVertexMatrix(),PolygonsClass.GetCubeIndicesMatrix(),"resources/textures/mao2.jpg",new Vector3(1.25f,0.0f,0.0f),1.3f);
 
             Polygons.PolygonsClass.RenderCube();
         }
+
+        public static Matrix4x4 view = Camera.Camera.MatrixViewCamera(CameraClass._camPos,CameraClass._cameraFront,CameraClass._cameraUp2);
+
+        public static Vector3 _cameraTarget = Camera.CameraClass._camTarget;
+        public static Vector3 _cameraUp = Camera.CameraClass._camUp1;
+        public static Vector3 _cameraOrientation = Camera.CameraClass._cameraOri;
         private static void KeyDown(IKeyboard keyboard, Key key, int keycode)
         {
             Vector3 dir = new Vector3();
-            Vector3 _cameraTarget = Camera.CameraClass._camTarget;
-            Vector3 _cameraUp = Camera.CameraClass._camUp1;
-            Vector3 _cameraOrientation = Camera.CameraClass._cameraOri;
+            dir.X = (float)Math.Cos(CameraClass.yaw*((float)Math.PI/180.0f));
+            dir.Y = (float)Math.Sin(CameraClass.pitch*((float)Math.PI/180.0f));
+            dir.Z = (float)Math.Sin(CameraClass.yaw*((float)Math.PI/180.0f));
 
             if (key == Key.Escape)
                 _mainWindow.Close();
@@ -178,31 +192,41 @@ namespace MainProgram
             if (key == Key.W)
             {
                 dir = Vector3.Normalize(_cameraTarget - _cameraPosition);
-                _cameraPosition += CameraClass._cameraOri * CameraClass.speed;
+                CameraClass._camPos += CameraClass._cameraOri * CameraClass.speed;
             }
 
             if (key == Key.S)
             {
                 dir = Vector3.Normalize(_cameraTarget - _cameraPosition);
-                _cameraPosition += -CameraClass._cameraOri * CameraClass.speed;
+                CameraClass._camPos += -CameraClass._cameraOri * CameraClass.speed;
             }
 
             if (key == Key.A)
             {
                 dir = Vector3.Normalize(_cameraTarget - _cameraPosition);
-                _cameraPosition += -Vector3.Normalize(Vector3.Cross(CameraClass._cameraOri,CameraClass._camUp1)) * CameraClass.speed;
+                CameraClass._camPos += -Vector3.Normalize(Vector3.Cross(CameraClass._cameraOri,CameraClass._camUp1)) * CameraClass.speed;
             }
 
             if (key == Key.D)
             {
                 dir = Vector3.Normalize(_cameraTarget - _cameraPosition);
-                _cameraPosition += Vector3.Normalize(Vector3.Cross(CameraClass._cameraOri,CameraClass._camUp1)) * CameraClass.speed;
+                CameraClass._camPos += Vector3.Normalize(Vector3.Cross(CameraClass._cameraOri,CameraClass._camUp1)) * CameraClass.speed;
             }
 
             if (key == Key.Space)
             {
                 dir = Vector3.Normalize(_cameraTarget - _cameraPosition);
-                _cameraPosition += CameraClass._camUp1 * CameraClass.speed;
+                CameraClass._camPos += CameraClass._camUp1 * CameraClass.speed;
+            }
+
+            if (key == Key.M)
+            {
+                _gl.PolygonMode(GLEnum.FrontAndBack,PolygonMode.Line);
+            }
+
+            if (key == Key.T)
+            {
+                _gl.PolygonMode(GLEnum.FrontAndBack,PolygonMode.Fill);
             }
         }
         private static void OnWindowChangedSize(Vector2D<int> size)

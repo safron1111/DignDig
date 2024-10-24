@@ -21,7 +21,7 @@ public class PolygonShader
 
         void main()
         {
-            gl_Position = _proj * _view * _model * vec4(aPosition, 1.0);
+            gl_Position = _proj * _view * _model * vec4(aPosition.x,aPosition.y,aPosition.z, 1.0);
             frag_tex3dCoords = vec2(aTexture3dCoord.x, 1.0 - aTexture3dCoord.y);
         }";
 
@@ -49,7 +49,7 @@ public class PolygonShader
         
         void main()
         {
-        //    -out_color = vec4(frag_tex3dCoords.x, frag_tex3dCoords.y, 0.0, 1.0);
+            //out_color = vec4(frag_tex3dCoords.x, frag_tex3dCoords.y, 0.0, 1.0);
             out_color = texture(uTexture, frag_tex3dCoords);
         }";
 

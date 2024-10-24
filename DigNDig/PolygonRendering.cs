@@ -18,9 +18,10 @@ namespace Polygons
         private static uint _vaoTex3D;
         private static uint _vboTex3D;
         private static uint _eboTex3D;
-        public unsafe static void DrawCube(float[] vertices, uint[] indices, string textureName)
+        public unsafe static void DrawCube(float[] vertices,uint[] indices, string textureName, Vector3 position, float variation)
         {
-            _model = GetModelMatrix();
+            _model = GetModelMatrix(position,variation);
+            _view = Camera.Camera.MatrixViewCamera(CameraClass._camPos,CameraClass._cameraFront,CameraClass._camUp1);
             _vaoTex3D = _gl.GenVertexArray();
             _gl.BindVertexArray(_vaoTex3D);
 
@@ -74,7 +75,7 @@ namespace Polygons
 
             const uint positionLoc = 3;
             _gl.EnableVertexAttribArray(positionLoc);
-            _gl.VertexAttribPointer(positionLoc , 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), (void*) 0);
+            _gl.VertexAttribPointer(positionLoc, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), (void*) 0);
 
             const uint texCoordLoc = 4;
             _gl.EnableVertexAttribArray(texCoordLoc);
@@ -108,22 +109,83 @@ namespace Polygons
         public static unsafe void RenderCube()
         {
             _gl.BindVertexArray(_vaoTex3D);
-            _gl.UseProgram(_program);
             _gl.ActiveTexture(TextureUnit.Texture0);
             _gl.BindTexture(TextureTarget.Texture2D, _texture);
-            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
+            _gl.DrawArrays(GLEnum.Triangles,0,36);
         }
-        public static Matrix4x4 GetModelMatrix()
+
+        public static float[] GetCubeVertexMatrix()
+        {
+            float[] verticesC = 
+            {
+                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+                0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            };
+
+            return verticesC;
+        }
+        public static uint[] GetCubeIndicesMatrix()
+        {
+            uint[] indicesC = 
+            {
+                0,1,3,
+                1,2,3
+            };
+
+            return indicesC;
+        }
+        public static Matrix4x4 GetModelMatrix(Vector3 position, float variation)
         {
             float degrees = -55.0f;
             float radians = degrees * (float)Math.PI/180.0f;
             Matrix4x4 model = Matrix4x4.Identity;
-            model *= Matrix4x4.CreateRotationX((float)_glfw.GetTime() * radians);
+            model *= Matrix4x4.CreateRotationX((float)_glfw.GetTime() * radians * variation);
+            model *= Matrix4x4.CreateRotationY((float)_glfw.GetTime() * (radians/2) * variation);
+            model *= Matrix4x4.CreateTranslation(position);
             return model;
         }
 
         public static Matrix4x4 _model;
-        public static Matrix4x4 _view = CameraClass.Matrix_view();
+        public static Matrix4x4 _view = Camera.Camera.MatrixViewCamera(CameraClass._camPos,CameraClass._cameraFront,CameraClass._camUp1);
         public static Matrix4x4 _proj = CameraClass.Matrix_proj(CameraClass.aspectRatio,CameraClass.FOVdeg,CameraClass.nearP,CameraClass.farP);
     }
 }
